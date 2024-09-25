@@ -1,20 +1,36 @@
 import os
 import sys
 import logging
+import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from config.db import get_db_connection
 
-logging = logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-
 users = [
-    ("emma", "kindergarten", False),
-    ("ellie", "first", False),
-    ("avery", "fourth", True),
-    ("ezra", "sixth", False),
-    ("noah", "seventh", False),
-    ("cooper", "ninth", False),
+    ("emma", "k", False),
+    ("ellie", "1", False),
+    ("avery", "4", True),
+    ("ezra", "6", False),
+    ("noah", "7", False),
+    ("cooper", "9", False),
+    ("1", "1", False),
+    ("2", "2", False),
+    ("3", "3", False),
+    ("4", "4", False),
+    ("5", "5", False),
+    ("6", "6", False),
+    ("7", "7", False),
+    ("8", "8", False),
+    ("9", "9", False),
+    ("10", "10", False),
+    ("11", "11", False),
+    ("12", "12", False),
+    ("mike", "12", False),
 ]
 
 # Curriculum data
@@ -32,12 +48,14 @@ curriculum_data = [
     {"user_grade": "10", "addition": 10000, "subtraction": 10000, "multiplication": 100, "division": 100, "geometry": 1, "algebra": 1, "algebra2": 1, "precalculus": -1, "calculus": -1},
     {"user_grade": "11", "addition": 10000, "subtraction": 10000, "multiplication": 100, "division": 100, "geometry": 1, "algebra": 1, "algebra2": 1, "precalculus": 1, "calculus": -1},
     {"user_grade": "12", "addition": 10000, "subtraction": 10000, "multiplication": 100, "division": 100, "geometry": 1, "algebra": 1, "algebra2": 1, "precalculus": 1, "calculus": 1},
-    {"user_grade": "special_education", "addition": 5, "subtraction": -1, "multiplication": -1, "division": -1, "geometry": -1, "algebra": -1, "algebra2": -1, "precalculus": -1, "calculus": -1}
+    {"user_grade": "special_education", "addition": 5, "subtraction": -1, "multiplication": -1, "division": -1, "geometry": -1, "algebra": -1, "algebra2": -1, "precalculus": -1, "calculus": -1},
 ]
 
 def populate_table_users():
     conn = get_db_connection()
     cur = conn.cursor()
+
+    cur.execute("DELETE FROM users")
 
     for user in users:
         if user[0].strip():  # Skip empty emotions
@@ -66,6 +84,7 @@ def validate_grade(grade):
 def populate_table_curriculum():
     conn = get_db_connection()
     cur = conn.cursor()
+    cur.execute("DELETE FROM curriculum")
 
     for row in curriculum_data:
         try:
@@ -88,7 +107,7 @@ def populate_table_curriculum():
             """, (grade, row['addition'], row['subtraction'], row['multiplication'], row['division'], 
                   row['geometry'], row['algebra'], row['algebra2'], row['precalculus'], row['calculus']))
             
-            logging.info(f"Successfully upserted curriculum for grade {grade}")
+            logging.debug(f"Successfully upserted curriculum for grade {grade}")
         except ValueError as e:
             logging.error(f"Validation error: {str(e)}")
         except psycopg2.Error as e:

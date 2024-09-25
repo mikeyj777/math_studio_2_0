@@ -1,43 +1,61 @@
 // client/src/utils/helpers.js
 
-export const fetchStudent = async () => {
-  // This should be replaced with an actual API call
-  return { name: "John Doe", grade_level: "6" };
+const API_BASE_URL = 'http://localhost:5000/api';
+
+export const fetchStudent = async (username) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/student/${username}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch student data');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching student:', error);
+    throw error;
+  }
 };
 
-export const fetchStats = async () => {
-  // This should be replaced with an actual API call
-  return {
-    currentStreak: 0,
-    sessionCorrect: 0,
-    sessionTotal: 0,
-    allTimeCorrect: 0,
-    allTimeTotal: 0
-  };
+export const fetchStats = async (username) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/stats/${username}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch stats');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    throw error;
+  }
 };
 
 export const fetchCurriculum = async (gradeLevel) => {
-  // This should be replaced with an actual API call
-  return {
-    addition: 100,
-    subtraction: 100,
-    multiplication: 12,
-    division: 12,
-    geometry: 1,
-    algebra: -1,
-    algebra2: -1,
-    precalculus: -1,
-    calculus: -1
-  };
+  try {
+    const response = await fetch(`${API_BASE_URL}/curriculum/${gradeLevel}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch curriculum');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching curriculum:', error);
+    throw error;
+  }
 };
 
-export const updateStats = (prevStats, isCorrect) => {
-  return {
-    ...prevStats,
-    currentStreak: isCorrect ? prevStats.currentStreak + 1 : 0,
-    sessionCorrect: isCorrect ? prevStats.sessionCorrect + 1 : prevStats.sessionCorrect,
-    sessionTotal: prevStats.sessionTotal + 1,
-    allTimeCorrect: isCorrect ? prevStats.allTimeCorrect + 1 : prevStats.allTimeCorrect,
-    allTimeTotal: prevStats.allTimeTotal + 1
-  };
+export const updateStats = async (username, isCorrect) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/stats/${username}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ is_correct: isCorrect }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update stats');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating stats:', error);
+    throw error;
+  }
 };

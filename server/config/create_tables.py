@@ -1,8 +1,13 @@
-from server.config.db import get_db_connection
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from config.db import get_db_connection
 
 def create_tables():
     conn = get_db_connection()
-    
+
     cur = conn.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -28,6 +33,22 @@ def create_tables():
             calculus INTEGER NOT NULL
         )
     """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS user_stats (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id),
+            total_problems INTEGER NOT NULL DEFAULT 0,
+            total_correct INTEGER NOT NULL DEFAULT 0,
+            current_streak INTEGER NOT NULL DEFAULT 0,
+            longest_streak INTEGER NOT NULL DEFAULT 0,
+            last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
     conn.commit()
     cur.close()
     conn.close()
+
+if __name__ == '__main__':
+    create_tables()

@@ -1,4 +1,5 @@
 import os
+import sys
 import psycopg2
 from urllib.parse import urlparse
 
@@ -14,7 +15,7 @@ def get_db_connection():
         pwd = os.environ['DB_PASSWORD']
         conn = psycopg2.connect(
             host="localhost",
-            database="postgres",
+            database="math_studio",
             user="postgres",
             password=pwd,
             port="5432"
@@ -24,7 +25,7 @@ def get_db_connection():
         from data.pwds import Pwds
         conn = psycopg2.connect(
             host="localhost",
-            database="postgres",
+            database="math_studio",
             user="postgres",
             password=Pwds.pg_pwd,
             port="5432"
