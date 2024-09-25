@@ -18,7 +18,11 @@ function Login() {
       console.log("full url as interpreted by react is " + `${API_BASE_URL}/api/users`)
       const res = await axios.post(`${API_BASE_URL}/api/users`, { name });
       const userId = res.data.userId;
+      const grade_level = res.data.grade_level;
+      const special_education = res.data.special_education;
       localStorage.setItem('userId', userId);
+      localStorage.setItem('grade_level', grade_level);
+      localStorage.setItem('special_education', special_education);
       navigate(`/dashboard/${userId}`);
     } catch (err) {
       console.error(err);

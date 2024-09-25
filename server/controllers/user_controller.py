@@ -21,7 +21,7 @@ def get_user():
                         id,
                         grade_level,
                         special_education
-                    FROM users WHERE name = %s""", (name,))
+                    FROM users WHERE username = %s""", (name,))
         existing_user_info = cur.fetchone()
 
         logging.debug(f"existing_user_info: {existing_user_info}")
@@ -39,7 +39,7 @@ def get_user():
         return jsonify({
             "userId": user_id,
             "grade_level": grade_level,
-            "userId": special_education,
+            "special_education": special_education,
         }), 200
     except Exception as e:
         print(e)
