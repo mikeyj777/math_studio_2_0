@@ -34,8 +34,8 @@ export const fetchCurriculum = async (gradeLevel) => {
     console.log('about to get curriculum');
     console.log("full url as interpreted by react is " + `${API_BASE_URL}/api/curriculum`);
     const response = await axios.get(`${API_BASE_URL}/api/curriculum/${gradeLevel}`);
-    const curriculum = response.data;
-    console.log('got curriculum' + curriculum);
+    const curriculum = response.data.curriculum;
+    console.log('got curriculum: ' + curriculum);
     return curriculum;
   } catch (error) {
     console.error('Error fetching curriculum:', error);
