@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import MathEngine from './MathEngine';
 import * as helpers from '../utils/helpers';
@@ -13,6 +13,9 @@ const MathStudioDisplay = () => {
   const [problem, setProblem] = useState(null);
   const [message, setMessage] = useState('');
   const [mathEngine, setMathEngine] = useState(null);
+  const [sessionCorrect, setSessionCorrect] = useState(0);
+  const [sessionTotal, setSessionTotal] = useState(0);
+  const navigate = useNavigate();
 
   const userData = JSON.parse(localStorage.getItem('userData'));
   const { name, grade_level: gradeLevelForDisplay, special_education: specialEducation } = userData;
@@ -54,7 +57,6 @@ const MathStudioDisplay = () => {
 
   useEffect(() => {
     if (stats) {
-      console.log('Stats updated:', stats);
       setStreakData(prevData => [
         ...prevData,
         { time: new Date().getTime(), streak: stats.currentStreak }
@@ -81,13 +83,16 @@ const MathStudioDisplay = () => {
           helpers.updateStats,
           () => mathEngine.generateProblem()
         );
-        console.log('Answer processed:', result);
         
         await fetchLatestStats();
         
         setProblem(result.newProblem);
         setAnswer('');
         setMessage(result.message);
+        setSessionTotal(sessionTotal + 1);
+        if (result.isCorrect) {
+          setSessionCorrect(sessionCorrect + 1);
+        }
       } catch (error) {
         console.error('Error processing answer:', error);
         setMessage("An error occurred while processing your answer. Please try again.");
@@ -108,6 +113,11 @@ const MathStudioDisplay = () => {
   if (!curriculum || !stats || !problem) {
     return <div>Loading...</div>;
   }
+
+  const handleLogout = () => {
+    localStorage.removeItem('userData');
+    navigate('/');
+  };
 
   return (
     <div className="math-studio-container">
@@ -145,7 +155,7 @@ const MathStudioDisplay = () => {
             <h4>Session Score</h4>
           </div>
           <div className="card-content">
-            <p className="stat-value">{stats.sessionCorrect || 0} / {stats.sessionTotal || 0}</p>
+            <p className="stat-value">{sessionCorrect || 0} / {sessionTotal || 0}</p>
           </div>
         </div>
         <div className="card stat-card">
@@ -163,16 +173,26 @@ const MathStudioDisplay = () => {
           <h4>Streak Trend</h4>
         </div>
         <div className="card-content chart-container">
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height="100%" minHeight={200}>
             <LineChart data={streakData}>
-              <XAxis dataKey="time" type="number" domain={['dataMin', 'dataMax']} tickFormatter={(tick) => new Date(tick).toLocaleTimeString()} />
-              <YAxis />
+              <XAxis 
+                dataKey="time" 
+                type="number" 
+                domain={['dataMin', 'dataMax']} 
+                tickFormatter={(tick) => new Date(tick).toLocaleTimeString()} 
+                style={{ fontSize: '12px' }}
+              />
+              <YAxis style={{ fontSize: '12px' }} />
               <Tooltip labelFormatter={(label) => new Date(label).toLocaleTimeString()} />
               <Line type="monotone" dataKey="streak" stroke="#8884d8" />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
+      <button onClick={handleLogout}>
+        Logout
+      </button>
+
     </div>
   );
 };

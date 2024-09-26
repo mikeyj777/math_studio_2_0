@@ -37,7 +37,6 @@ export const fetchStats = async (userId) => {
 export const updateStats = async (userId, isCorrect) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/stats/${userId}`, { is_correct: isCorrect });
-    console.log('Stats update response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error updating stats:', error);
@@ -72,7 +71,8 @@ export const onAnswer = async (userId, answer, correctAnswer, updateStats, updat
     return {
       message,
       updatedStats,
-      newProblem
+      newProblem,
+      isCorrect
     };
   } catch (error) {
     console.error('Error updating answer:', error);
