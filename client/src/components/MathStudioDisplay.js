@@ -5,11 +5,14 @@ import { API_BASE_URL } from '../config';
 import { useNavigate } from 'react-router-dom';
 import * as helpers from '../utils/helpers';
 
-const MathStudioDisplay = ({ student = {}, problem = {}, onAnswer, stats = {} }) => {
+const MathStudioDisplay = ({ onAnswer}) => {
   const [answer, setAnswer] = useState('');
   const [streakData, setStreakData] = useState([]);
+  const [curriculum, setCurriculum] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [problem, setProblem] = useState(null);
 
-
+  console.log("on answer is " + onAnswer)
   //  get user data
   const name = helpers.toTitleCase(localStorage.getItem('name'));
   const userId = localStorage.getItem('userId');
@@ -24,29 +27,63 @@ const MathStudioDisplay = ({ student = {}, problem = {}, onAnswer, stats = {} })
   console.log("grade level is " + gradeLevel)
   console.log("special education is " + specialEducation)
 
-  const curriculum = helpers.fetchCurriculum(gradeLevel);
-
-  console.log("curriculum is " + curriculum);
-  // get problem
-  const me = new MathEngine(curriculum);
-  problem =me.generateProblem();
-
-  console.log("problem is " + problem);
-
-  //get stats
-  stats = helpers.fetchStats(userId);
-
+  // Fetch curriculum data asynchronously and store in state
+   // Fetch curriculum data asynchronously
   useEffect(() => {
-    if (stats.currentStreak !== undefined) {
-      setStreakData(prevData => [...prevData, { time: new Date().getTime(), streak: stats.currentStreak }]);
+    const fetchCurriculumData = async () => {
+      try {
+        const curriculumData = await helpers.fetchCurriculum(gradeLevel);
+        setCurriculum(curriculumData.curriculum); // Set curriculum in state
+      } catch (error) {
+        console.error('Error fetching curriculum:', error);
+      }
+    };
+
+    fetchCurriculumData();
+  }, [gradeLevel]);
+
+  // Fetch stats data asynchronously
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const statsData = await helpers.fetchStats(userId);
+        setStats(statsData);  // Set the stats in state after fetching
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
+    fetchUserStats();
+  }, [userId]);
+
+  // Update streakData when stats are fetched and currentStreak exists
+  useEffect(() => {
+    if (stats && stats.currentStreak !== undefined) {
+      setStreakData(prevData => [
+        ...prevData,
+        { time: new Date().getTime(), streak: stats.currentStreak }
+      ]);
     }
-  }, [stats.currentStreak]);
+  }, [stats]);
+
+  // Generate the problem once the curriculum is fetched
+  useEffect(() => {
+    if (curriculum) {
+      const me = new MathEngine(curriculum);
+      const generatedProblem = me.generateProblem();
+      setProblem(generatedProblem);  // Store the generated problem in state
+    }
+  }, [curriculum]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (onAnswer) onAnswer(answer);
     setAnswer('');
   };
+
+  if (!curriculum || !stats || !problem) {
+    return <div>Loading...</div>; // Render a loading state until everything is ready
+  }
 
   return (
     <div className="math-studio-container">

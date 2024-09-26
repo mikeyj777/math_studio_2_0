@@ -67,8 +67,28 @@ class MathEngine {
 
   generateProblem() {
     const subjects = ['addition', 'subtraction', 'multiplication', 'division', 'geometry', 'algebra', 'algebra2', 'precalculus', 'calculus'];
-    const availableSubjects = subjects.filter(subject => this.curriculum[subject] !== -1);
+    // const availableSubjects = subjects.filter(subject => this.curriculum[subject] !== -1);
     
+    
+
+    console.log("from math engine");
+
+    console.log("getting available math subjects")
+
+    let availableSubjects = [];
+    for (const subject of subjects) {
+      if (subject in this.curriculum) {
+        if (this.curriculum[subject] !== -1) {
+          availableSubjects.push(subject);
+          console.log('added ' + subject);
+        }
+      }
+    }
+
+    
+    console.log("available subjects are " + availableSubjects);
+    console.log("curriculum is " + this.curriculum);
+
     if (availableSubjects.length === 0) {
       return { question: "No subjects available for this grade level.", answer: null };
     }

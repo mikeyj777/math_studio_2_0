@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
+
 export function toTitleCase(str) {
   return str.replace(
     /\w\S*/g,
@@ -23,7 +24,7 @@ export const fetchStats = async (userId) => {
   }
 };
 
-export const fetchCurriculum = async (gradeLevel) => {
+export const axios_fetchCurriculum = async (gradeLevel) => {
   try {
     // const response = await fetch(`${API_BASE_URL}/curriculum/${gradeLevel}`);
     console.log('about to get curriculum');
@@ -33,6 +34,21 @@ export const fetchCurriculum = async (gradeLevel) => {
     return curriculum;
   } catch (error) {
     console.error('Error fetching curriculum:', error);
+    throw error;
+  }
+};
+
+export const fetchCurriculum = async (gradeLevel) => {
+  try {
+    console.log('about to get curriculum');
+    const response = await fetch(`${API_BASE_URL}/api/curriculum/${gradeLevel}`);
+    console.log('got curriculum response: ' + response);
+    if (!response.ok) {
+      throw new Error('Failed to fetch stats');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching stats:', error);
     throw error;
   }
 };
