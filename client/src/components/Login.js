@@ -20,10 +20,14 @@ function Login() {
       const userId = res.data.userId;
       const grade_level = res.data.grade_level;
       const special_education = res.data.special_education;
+      console.log("user id is " + userId)
+      console.log("grade level is " + grade_level)
+      console.log("special education is " + special_education)
       localStorage.setItem('userId', userId);
       localStorage.setItem('grade_level', grade_level);
       localStorage.setItem('special_education', special_education);
-      navigate(`/dashboard/${userId}`);
+
+      navigate(`/math-studio-display/${userId}`);
     } catch (err) {
       console.error(err);
     }

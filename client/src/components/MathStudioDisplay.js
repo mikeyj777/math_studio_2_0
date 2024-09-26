@@ -1,9 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import MathEngine from './MathEngine';
+import { API_BASE_URL } from '../config';
+import { useNavigate } from 'react-router-dom';
+import * as helpers from '../utils/helpers';
 
 const MathStudioDisplay = ({ student = {}, problem = {}, onAnswer, stats = {} }) => {
   const [answer, setAnswer] = useState('');
   const [streakData, setStreakData] = useState([]);
+
+
+  //  get user data
+  const userId = localStorage.getItem('userId');
+  const gradeLevelFromStorage = localStorage.getItem('grade_level');
+  const specialEducation = localStorage.getItem('special_education') === 'true';
+
+  //  determine if user is in special ed
+  const gradeLevel = specialEducation ? 'special_education' : gradeLevelFromStorage;
+  
+  console.log("from math studio display")
+  console.log("user id is " + userId)
+  console.log("grade level is " + gradeLevel)
+  console.log("special education is " + specialEducation)
+
+  const curriculum = helpers.fetchCurriculum(gradeLevel);
+
+  console.log("curriculum is " + curriculum);
+  // get problem
+  const me = new MathEngine(curriculum);
+  problem =me.generateProblem();
+
+  console.log("problem is " + problem);
+
+  //get stats
+  stats = helpers.fetchStats(userId);
 
   useEffect(() => {
     if (stats.currentStreak !== undefined) {
