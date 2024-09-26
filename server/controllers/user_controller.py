@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 def get_user():
     data = request.get_json()
-    name = data['name']
+    name = data['username']
     if not isinstance(name, str) or not name.strip():
         return jsonify({'error': 'name must be a string'}), 400
     name = name.strip()
@@ -37,6 +37,7 @@ def get_user():
         cur.close()
         conn.close()
         return jsonify({
+            "name": name,
             "userId": user_id,
             "grade_level": grade_level,
             "special_education": special_education,

@@ -1,64 +1,60 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import MathEngine from './MathEngine';
-import { API_BASE_URL } from '../config';
-import { useNavigate } from 'react-router-dom';
 import * as helpers from '../utils/helpers';
 
-const MathStudioDisplay = ({ onAnswer}) => {
+const MathStudioDisplay = () => {
+  const { userId } = useParams();
   const [answer, setAnswer] = useState('');
   const [streakData, setStreakData] = useState([]);
   const [curriculum, setCurriculum] = useState(null);
   const [stats, setStats] = useState(null);
   const [problem, setProblem] = useState(null);
+  const [message, setMessage] = useState('');
+  const [mathEngine, setMathEngine] = useState(null);
 
-  console.log("on answer is " + onAnswer)
-  //  get user data
-  const name = helpers.toTitleCase(localStorage.getItem('name'));
-  const userId = localStorage.getItem('userId');
-  const gradeLevelForDisplay = localStorage.getItem('grade_level');
-  const specialEducation = localStorage.getItem('special_education') === 'true';
+  const userData = JSON.parse(localStorage.getItem('userData'));
+  const { name, grade_level: gradeLevelForDisplay, special_education: specialEducation } = userData;
 
-  //  determine if user is in special ed
   const gradeLevel = specialEducation ? 'special_education' : gradeLevelForDisplay;
-  
-  console.log("from math studio display")
-  console.log("user id is " + userId)
-  console.log("grade level is " + gradeLevel)
-  console.log("special education is " + specialEducation)
 
-  // Fetch curriculum data asynchronously and store in state
-   // Fetch curriculum data asynchronously
+  const fetchLatestStats = async () => {
+    try {
+      const latestStats = await helpers.fetchStats(userId);
+      setStats(latestStats);
+    } catch (error) {
+      console.error('Error fetching latest stats:', error);
+    }
+  };
+
   useEffect(() => {
-    const fetchCurriculumData = async () => {
+    const fetchData = async () => {
       try {
-        const curriculumData = await helpers.fetchCurriculum(gradeLevel);
-        setCurriculum(curriculumData.curriculum); // Set curriculum in state
+        const [curriculumData, statsData] = await Promise.all([
+          helpers.fetchCurriculum(gradeLevel),
+          helpers.fetchStats(userId)
+        ]);
+        setCurriculum(curriculumData.curriculum);
+        setStats(statsData);
+        setMathEngine(new MathEngine(curriculumData.curriculum));
       } catch (error) {
-        console.error('Error fetching curriculum:', error);
+        console.error('Error fetching data:', error);
       }
     };
 
-    fetchCurriculumData();
-  }, [gradeLevel]);
+    fetchData();
+  }, [userId, gradeLevel]);
 
-  // Fetch stats data asynchronously
   useEffect(() => {
-    const fetchUserStats = async () => {
-      try {
-        const statsData = await helpers.fetchStats(userId);
-        setStats(statsData);  // Set the stats in state after fetching
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-      }
-    };
+    if (mathEngine) {
+      setProblem(mathEngine.generateProblem());
+    }
+  }, [mathEngine]);
 
-    fetchUserStats();
-  }, [userId]);
-
-  // Update streakData when stats are fetched and currentStreak exists
   useEffect(() => {
-    if (stats && stats.currentStreak !== undefined) {
+    if (stats) {
+      console.log('Stats updated:', stats);
       setStreakData(prevData => [
         ...prevData,
         { time: new Date().getTime(), streak: stats.currentStreak }
@@ -66,23 +62,51 @@ const MathStudioDisplay = ({ onAnswer}) => {
     }
   }, [stats]);
 
-  // Generate the problem once the curriculum is fetched
-  useEffect(() => {
-    if (curriculum) {
-      const me = new MathEngine(curriculum);
-      const generatedProblem = me.generateProblem();
-      setProblem(generatedProblem);  // Store the generated problem in state
-    }
-  }, [curriculum]);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (onAnswer) onAnswer(answer);
-    setAnswer('');
+    
+    const trimmedAnswer = answer.trim();
+    
+    if (!trimmedAnswer) {
+      setMessage("Please enter an answer before submitting.");
+      return;
+    }
+
+    if (problem) {
+      try {
+        const result = await helpers.onAnswer(
+          userId, 
+          trimmedAnswer,
+          problem.answer,
+          helpers.updateStats,
+          () => mathEngine.generateProblem()
+        );
+        console.log('Answer processed:', result);
+        
+        await fetchLatestStats();
+        
+        setProblem(result.newProblem);
+        setAnswer('');
+        setMessage(result.message);
+      } catch (error) {
+        console.error('Error processing answer:', error);
+        setMessage("An error occurred while processing your answer. Please try again.");
+      }
+    }
+  };
+
+  const renderMathSymbols = (text) => {
+    return text.replace(/\^(\d+)/g, '<sup>$1</sup>')
+               .replace(/√/g, '&radic;')
+               .replace(/π/g, '&pi;')
+               .replace(/≥/g, '&ge;')
+               .replace(/≤/g, '&le;')
+               .replace(/∞/g, '&infin;')
+               .replace(/(\d+)\/(\d+)/g, '<sup>$1</sup>&frasl;<sub>$2</sub>');
   };
 
   if (!curriculum || !stats || !problem) {
-    return <div>Loading...</div>; // Render a loading state until everything is ready
+    return <div>Loading...</div>;
   }
 
   return (
@@ -93,7 +117,8 @@ const MathStudioDisplay = ({ onAnswer}) => {
         </div>
         <div className="card-content">
           <h3>Problem:</h3>
-          <p>{problem.question || 'Loading problem...'}</p>
+          <p dangerouslySetInnerHTML={{ __html: renderMathSymbols(problem.question || 'Loading problem...') }}></p>
+          {message && <p className="message">{message}</p>}
           <form onSubmit={handleSubmit} className="form-group">
             <input
               type="text"
@@ -138,7 +163,7 @@ const MathStudioDisplay = ({ onAnswer}) => {
           <h4>Streak Trend</h4>
         </div>
         <div className="card-content chart-container">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={200}>
             <LineChart data={streakData}>
               <XAxis dataKey="time" type="number" domain={['dataMin', 'dataMax']} tickFormatter={(tick) => new Date(tick).toLocaleTimeString()} />
               <YAxis />
