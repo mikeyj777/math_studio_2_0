@@ -2,22 +2,10 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
-export const fetchStudent = async (username) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/student/${username}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch student data');
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching student:', error);
-    throw error;
-  }
-};
-
 export const fetchStats = async (userId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/stats/${userId}`);
+    const response = await fetch(`${API_BASE_URL}/api/stats/${userId}`);
+    console.log("stats response is " + response);
     if (!response.ok) {
       throw new Error('Failed to fetch stats');
     }
@@ -32,7 +20,6 @@ export const fetchCurriculum = async (gradeLevel) => {
   try {
     // const response = await fetch(`${API_BASE_URL}/curriculum/${gradeLevel}`);
     console.log('about to get curriculum');
-    console.log("full url as interpreted by react is " + `${API_BASE_URL}/api/curriculum`);
     const response = await axios.get(`${API_BASE_URL}/api/curriculum/${gradeLevel}`);
     const curriculum = response.data.curriculum;
     console.log('got curriculum: ' + curriculum);
@@ -45,7 +32,7 @@ export const fetchCurriculum = async (gradeLevel) => {
 
 export const updateStats = async (username, isCorrect) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/stats/${username}`, {
+    const response = await fetch(`${API_BASE_URL}/api/stats/${username}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
