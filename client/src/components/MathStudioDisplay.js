@@ -11,12 +11,13 @@ const MathStudioDisplay = ({ student = {}, problem = {}, onAnswer, stats = {} })
 
 
   //  get user data
+  const name = helpers.toTitleCase(localStorage.getItem('name'));
   const userId = localStorage.getItem('userId');
-  const gradeLevelFromStorage = localStorage.getItem('grade_level');
+  const gradeLevelForDisplay = localStorage.getItem('grade_level');
   const specialEducation = localStorage.getItem('special_education') === 'true';
 
   //  determine if user is in special ed
-  const gradeLevel = specialEducation ? 'special_education' : gradeLevelFromStorage;
+  const gradeLevel = specialEducation ? 'special_education' : gradeLevelForDisplay;
   
   console.log("from math studio display")
   console.log("user id is " + userId)
@@ -51,7 +52,7 @@ const MathStudioDisplay = ({ student = {}, problem = {}, onAnswer, stats = {} })
     <div className="math-studio-container">
       <div className="card">
         <div className="card-header">
-          <h2>{student.name || 'Student'} - Grade {student.grade || 'N/A'}</h2>
+          <h2>{name || 'Student'} - Grade {gradeLevelForDisplay || 'N/A'}</h2>
         </div>
         <div className="card-content">
           <h3>Problem:</h3>

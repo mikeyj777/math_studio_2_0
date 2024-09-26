@@ -2,6 +2,13 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
+export function toTitleCase(str) {
+  return str.replace(
+    /\w\S*/g,
+    text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+  );
+}
+
 export const fetchStats = async (userId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/stats/${userId}`);

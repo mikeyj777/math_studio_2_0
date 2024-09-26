@@ -17,9 +17,21 @@ def get_curriculum(grade_level):
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("""SELECT 
-                        *
+                        addition, subtraction, multiplication, division, geometry, algebra, algebra2, precalculus, calculus
                     FROM curriculum WHERE user_grade = %s""", (grade_level,))
-        curriculum = cur.fetchone()
+        curriculum_tuple = cur.fetchone()
+
+        curriculum = {
+            "addition": curriculum_tuple[0],
+            "subtraction": curriculum_tuple[1],
+            "multiplication": curriculum_tuple[2],
+            "division": curriculum_tuple[3],
+            "geometry": curriculum_tuple[4],
+            "algebra": curriculum_tuple[5],
+            "algebra2": curriculum_tuple[6],
+            "precalculus": curriculum_tuple[7],
+            "calculus": curriculum_tuple[8]
+        }
 
         logging.debug(f"curriculum: {curriculum}")
 

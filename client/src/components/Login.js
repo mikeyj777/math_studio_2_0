@@ -26,6 +26,7 @@ function Login() {
       localStorage.setItem('userId', userId);
       localStorage.setItem('grade_level', grade_level);
       localStorage.setItem('special_education', special_education);
+      localStorage.setItem('name', name);
 
       navigate(`/math-studio-display/${userId}`);
     } catch (err) {
